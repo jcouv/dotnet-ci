@@ -21,10 +21,12 @@ def call (def helixRunsBlob, String prStatusPrefix) {
     // Parallel stages that wait for the runs.
     def helixRunTasks = [:]
     def mcUrlMap = [:]
+    def passed = true
 
     for (int i = 0; i < helixRunsBlob.size(); i++) {
         def currentRun = helixRunsBlob[i];
         def queueId = currentRun['QueueId']
+        def correlationId = currentRun['CorrelationId']
         def statusUrl = "https://helix.dot.net/api/2017-04-14/jobs/${correlationId}/details"
         def statusResponse = httpRequest statusUrl
         assert statusResponse != null
@@ -33,7 +35,7 @@ def call (def helixRunsBlob, String prStatusPrefix) {
         def mcResultsUrl = "https://mc.dot.net/#/user/${getEncodedUrl(statusContent.Creator)}/${getEncodedUrl(statusContent.Source)}/${getEncodedUrl(statusContent.Type)}/${getEncodedUrl(statusContent.Build)}"
         mcUrlMap[queueId] = mcResultsUrl
     }
-    pipelineSummaryBuilder('Test Run Results', mcUrlMap)
+    addSummaryLink('Test Run Results', mcUrlMap)
 
     for (int i = 0; i < helixRunsBlob.size(); i++) {
         def currentRun = helixRunsBlob[i];
@@ -127,6 +129,7 @@ def call (def helixRunsBlob, String prStatusPrefix) {
                         // Compute the current resultValue.  We'll update the sub result every time, but the final result only when isFinished is true
                         if (failedTests != 0) {
                             resultValue = "FAILURE"
+                            passed = passed & false
                             subMessage = "Failed ${failedTests}/${totalTests} (${skippedTests} skipped)"
                         }
                         else {
@@ -157,6 +160,9 @@ def call (def helixRunsBlob, String prStatusPrefix) {
         // Set timeout to 240 minutes to avoid the accidental job getting stuck
         timeout(720) {
             parallel helixRunTasks
+        }
+        if(!passed) {
+            error "Test leg failure. Please check status page"
         }
     }
 }
