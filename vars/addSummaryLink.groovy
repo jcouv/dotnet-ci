@@ -10,7 +10,7 @@ def call (String header, Map urls, boolean isError = false) {
                 newSummary.appendText("<li><a href=\\\"\${linkToAdd}\\\">\${linkDescription}</a></li>", false)
             }
             else {
-                newSummary.appendText("<li><span style="background-color: #FF0000"><a href=\\\"\${linkToAdd}\\\">\${linkDescription}</a></span></li>", false)
+                newSummary.appendText("<li><a href=\\\"\${linkToAdd}\\\">\${linkDescription}</a></li>", false, false, false, "red")
             }
             
         }
