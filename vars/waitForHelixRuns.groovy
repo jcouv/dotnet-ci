@@ -164,7 +164,7 @@ def call (def helixRunsBlob, String prStatusPrefix) {
             parallel helixRunTasks
         }
         if(!passed) {
-            addSummaryLink('Failed Test Runs', failedRunMap)
+            addSummaryLink('Failed Test Runs', failedRunMap, true)
             error "Test leg failure. Please check status page"
         }
     }
