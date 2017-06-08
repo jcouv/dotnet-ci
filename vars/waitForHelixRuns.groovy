@@ -21,6 +21,7 @@ def call (def helixRunsBlob, String prStatusPrefix) {
     // Parallel stages that wait for the runs.
     def helixRunTasks = [:]
     def mcUrlMap = [:]
+    def failedRunMap = [:]
     def passed = true
 
     for (int i = 0; i < helixRunsBlob.size(); i++) {
@@ -130,6 +131,7 @@ def call (def helixRunsBlob, String prStatusPrefix) {
                         if (failedTests != 0) {
                             resultValue = "FAILURE"
                             passed = passed & false
+                            failedRunMap[queueId] = mcResultsUrl
                             subMessage = "Failed ${failedTests}/${totalTests} (${skippedTests} skipped)"
                         }
                         else {
@@ -162,6 +164,7 @@ def call (def helixRunsBlob, String prStatusPrefix) {
             parallel helixRunTasks
         }
         if(!passed) {
+            addSummaryLink('Failed Test Runs', failedRunMap)
             error "Test leg failure. Please check status page"
         }
     }
